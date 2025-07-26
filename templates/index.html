@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脉藤PulseVyne - 理论处理与行动计划生成平台</title>
+    <style>
+        /* 使用系统字体，避免外部字体加载问题 */
+        
+        :root {
+            --primary-color: #0078d4;
+            --primary-hover: #106ebe;
+            --primary-light: #40e0d0;
+            --secondary-color: #005a9e;
+            --accent-color: #00bcf2;
+            --success-color: #107c10;
+            --warning-color: #ff8c00;
+            --error-color: #d13438;
+            --neutral-color: #323130;
+            --neutral-light: #605e5c;
+            --neutral-lighter: #8a8886;
+            --neutral-lightest: #edebe9;
+            --background-primary: #faf9f8;
+            --background-secondary: #ffffff;
+            --surface-color: rgba(255, 255, 255, 0.9);
+            --surface-color-secondary: rgba(255, 255, 255, 0.7);
+            --surface-color-tertiary: rgba(255, 255, 255, 0.5);
+            --surface-color-quaternary: rgba(255, 255, 255, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --glass-border-strong: rgba(255, 255, 255, 0.5);
+            --glass-highlight: rgba(255, 255, 255, 0.6);
+            --glass-shadow: rgba(31, 38, 135, 0.37);
+            --shadow-light: 0 2px 8px 0 rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 4px 16px 0 rgba(0, 0, 0, 0.12), 0 2px 6px 0 rgba(0, 0, 0, 0.08);
+            --shadow-heavy: 0 8px 32px 0 rgba(0, 0, 0, 0.16), 0 4px 12px 0 rgba(0, 0, 0, 0.12);
+            --shadow-glass: 0 8px 32px 0 var(--glass-shadow);
+            --shadow-fluent: 0 0.3px 0.9px rgba(0, 0, 0, 0.1), 0 1.6px 3.6px rgba(0, 0, 0, 0.13);
+            --border-radius: 8px;
+            --border-radius-medium: 12px;
+            --border-radius-large: 16px;
+            --border-radius-xl: 20px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --blur-strong: blur(60px);
+            --blur-medium: blur(30px);
+            --blur-light: blur(15px);
+            --blur-subtle: blur(8px);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--neutral-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            will-change: auto;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .glass-morphism {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: var(--blur-strong);
+            -webkit-backdrop-filter: var(--blur-strong);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: var(--border-radius-xl);
+            box-shadow: 
+                0 8px 32px 0 rgba(31, 38, 135, 0.37),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-morphism::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.8), 
+                transparent);
+        }
+        
+        .glass-morphism::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 0%, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                transparent 50%);
+            pointer-events: none;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 48px;
+            color: rgba(255, 255, 255, 0.95);
+            animation: fadeInUp 0.8s ease-out both;
+            position: relative;
+            border-radius: var(--border-radius-xl);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--surface-color), rgba(255, 255, 255, 0.1));
+            backdrop-filter: var(--blur-medium);
+            -webkit-backdrop-filter: var(--blur-medium);
+            border: 1px solid var(--glass-border-strong);
+            border-top: 1px solid var(--glass-highlight);
+            color: var(--success-color);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-fluent), inset 0 1px 0 var(--glass-highlight), 0 0 20px rgba(16, 124, 16, 0.1);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
+        }
+        
+        .status-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .status-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy), inset 0 1px 0 var(--glass-highlight);
+            background: var(--surface-color-secondary);
+        }
+        
+        .status-badge:hover::before {
+            left: 100%;
+        }
+        
+        .status-badge::before {
+            content: '●';
+            color: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin: 0 0 16px 0;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header .subtitle {
+            font-size: 1.25rem;
+            font-weight: 400;
+            opacity: 0.9;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        
+        .api-section {
+            background: var(--surface-color-secondary);
+            backdrop-filter: var(--blur-strong);
+            -webkit-backdrop-filter: var(--blur-strong);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            border-radius: var(--border-radius-xl);
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-glass), inset 0 1px 0 var(--glass-highlight);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            will-change: transform, box-shadow;
+        }
+        
+        .api-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
+        }
+        
+        .api-section:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: var(--shadow-heavy), inset 0 1px 0 var(--glass-highlight), 0 12px 40px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.18) 0%, 
+                rgba(255, 255, 255, 0.10) 50%,
+                rgba(255, 255, 255, 0.06) 100%);
+        }
+        
+        .api-section:hover::after {
+            opacity: 0.3;
+        }
+        
+        .api-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            padding-bottom: 16px;
+        }
+        
+        .api-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary-color));
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(64, 224, 208, 0.3);
+        }
+        
+        .api-item {
+            background: var(--surface-color);
+            backdrop-filter: var(--blur-medium);
+            -webkit-backdrop-filter: var(--blur-medium);
+            border-radius: var(--border-radius-large);
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            box-shadow: var(--shadow-fluent), inset 0 1px 0 var(--glass-highlight);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .api-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            transition: var(--transition);
+        }
+        
+        .api-item:hover {
+            transform: translateY(-3px) scale(1.005);
+            box-shadow: var(--shadow-heavy), inset 0 1px 0 var(--glass-highlight), 0 8px 32px rgba(0, 0, 0, 0.12);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                rgba(255, 255, 255, 0.08) 50%,
+                rgba(255, 255, 255, 0.04) 100%);
+        }
+        
+        .api-item:hover::before {
+            width: 8px;
+        }
+        
+        .api-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            transition: left 0.8s ease;
+            pointer-events: none;
+        }
+        
+        .api-item:hover::after {
+            left: 100%;
+        }
+        
+        .api-endpoint {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .api-method {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .api-description {
+            color: var(--neutral-light);
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .example-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .example-box {
+            background: var(--background-primary);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid var(--neutral-lightest);
+            transition: var(--transition);
+        }
+        
+        .example-box:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .example-header {
+            background: var(--neutral-lightest);
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--neutral-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .example-content {
+            padding: 16px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--neutral-light);
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .test-section {
+            background: var(--surface-color-tertiary);
+            backdrop-filter: var(--blur-light);
+            -webkit-backdrop-filter: var(--blur-light);
+            border-radius: var(--border-radius-large);
+            padding: 24px;
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            box-shadow: var(--shadow-light), inset 0 1px 0 var(--glass-highlight);
+            position: relative;
+        }
+        
+        .test-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
+        }
+        
+        .test-title {
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--neutral-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--neutral-color);
+            font-size: 0.875rem;
+        }
+        
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            border-radius: var(--border-radius-medium);
+            font-size: 0.875rem;
+            font-family: inherit;
+            transition: var(--transition-smooth);
+            background: var(--surface-color);
+            backdrop-filter: var(--blur-subtle);
+            -webkit-backdrop-filter: var(--blur-subtle);
+            box-shadow: var(--shadow-fluent), inset 0 1px 0 var(--glass-highlight);
+            line-height: 1.5;
+        }
+        
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(50, 49, 48, 0.6);
+            font-style: italic;
+        }
+        
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--surface-color-secondary);
+            backdrop-filter: var(--blur-medium);
+            -webkit-backdrop-filter: var(--blur-medium);
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15), var(--shadow-medium), inset 0 1px 0 var(--glass-highlight);
+            transform: translateY(-1px);
+        }
+        
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            backdrop-filter: var(--blur-medium);
+            -webkit-backdrop-filter: var(--blur-medium);
+            color: white;
+            border: 1px solid var(--glass-border-strong);
+            border-top: 1px solid var(--glass-highlight);
+            padding: 16px 32px;
+            border-radius: var(--border-radius-medium);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-fluent), inset 0 1px 0 var(--glass-highlight);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.2px;
+            min-width: 120px;
+        }
+        
+        .test-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: var(--shadow-heavy), inset 0 1px 0 var(--glass-highlight), 0 8px 25px rgba(0, 120, 212, 0.3);
+            background: linear-gradient(135deg, var(--primary-hover), var(--secondary-color));
+        }
+        
+        .test-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .test-button:active::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .test-button:hover::before {
+            left: 100%;
+        }
+        
+        .test-button:active {
+            transform: translateY(0);
+        }
+        
+        .test-result {
+            margin-top: 24px;
+            padding: 24px;
+            border-radius: var(--border-radius-large);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            display: none;
+            animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-left: 4px solid;
+            backdrop-filter: var(--blur-medium);
+            -webkit-backdrop-filter: var(--blur-medium);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            box-shadow: var(--shadow-fluent), inset 0 1px 0 var(--glass-highlight), 0 4px 20px rgba(0, 0, 0, 0.08);
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+        
+        .test-result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
+        }
+        
+        .test-result.success {
+            background: rgba(16, 124, 16, 0.1);
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+        
+        .test-result.error {
+            background: rgba(209, 52, 56, 0.1);
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+        
+        .api-params {
+            background: var(--neutral-color);
+            color: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 80px;
+            padding: 48px;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.12) 0%, 
+                rgba(255, 255, 255, 0.06) 50%,
+                rgba(255, 255, 255, 0.03) 100%);
+            backdrop-filter: var(--blur-strong);
+            -webkit-backdrop-filter: var(--blur-strong);
+            border: 1px solid var(--glass-border-strong);
+            border-top: 2px solid var(--glass-highlight);
+            border-radius: var(--border-radius-xl);
+            color: rgba(255, 255, 255, 0.95);
+            box-shadow: var(--shadow-glass), inset 0 1px 0 var(--glass-highlight), 0 8px 40px rgba(31, 38, 135, 0.2);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
+        }
+        
+        .footer p {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .footer strong {
+            color: var(--accent-color);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+        
+        @keyframes glassReflection {
+            0%, 100% {
+                opacity: 0;
+                transform: translateX(-100%) skewX(-15deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(100%) skewX(-15deg);
+            }
+        }
+        
+        @keyframes liquidFlow {
+            0%, 100% {
+                transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+            }
+            25% {
+                transform: perspective(1000px) rotateX(1deg) rotateY(-0.5deg);
+            }
+            50% {
+                transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+            }
+            75% {
+                transform: perspective(1000px) rotateX(-1deg) rotateY(0.5deg);
+            }
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: var(--shadow-fluent), 0 0 20px rgba(0, 120, 212, 0.1); }
+            50% { box-shadow: var(--shadow-fluent), 0 0 30px rgba(0, 120, 212, 0.2); }
+        }
+        
+        @keyframes floatUp {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-2px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .example-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .api-section {
+                padding: 20px;
+            }
+            
+            .api-item {
+                padding: 16px;
+            }
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1));
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-left: 4px solid var(--warning-color);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    
+    <div class="container">
+        <div class="header glass-morphism">
+            <div class="status-badge">服务正常运行中</div>
+            <h1>脉藤PulseVyne</h1>
+            <p class="subtitle">理论处理与行动计划生成平台</p>
+        </div>
+        
+        <div class="api-section">
+            <h2 class="api-title">📚 API 使用说明</h2>
+            
+            <div class="api-item">
+                <div class="api-endpoint">
+                    <span class="api-method">POST</span>
+                    /api/generate-suggestions
+                </div>
+                <div class="api-description">
+                    生成3-5个行动建议，每个建议包含表情符号、标题和内容
+                </div>
+                
+                <div class="example-container">
+                    <div class="example-box">
+                        <div class="example-header">📤 请求示例</div>
+                        <div class="example-content">{
+  "input": "我想要提高工作效率"
+}</div>
+                    </div>
+                    <div class="example-box">
+                        <div class="example-header">📥 返回示例</div>
+                        <div class="example-content">{
+  "success": true,
+  "message": "建议生成完成",
+  "suggestions": [
+    {
+      "emoji": "⏰",
+      "title": "时间管理优化",
+      "content": "使用番茄工作法，25分钟专注工作..."
+    }
+  ]
+}</div>
+                    </div>
+                </div>
+                
+                <div class="test-section">
+                    <div class="test-title">🧪 在线测试</div>
+                    <div class="test-form">
+                        <div class="form-group">
+                            <label class="form-label">输入内容:</label>
+                            <textarea class="form-textarea" id="suggestions-input" placeholder="请输入您的需求或目标...">我想要提高工作效率</textarea>
+                        </div>
+                        <button class="test-button" onclick="testSuggestionsAPI()">发送请求</button>
+                        <div class="test-result" id="suggestions-result"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="api-item">
+                <div class="api-endpoint">
+                    <span class="api-method">POST</span>
+                    /api/get-link-content
+                </div>
+                <div class="api-description">
+                    获取链接的网页内容，通过飞书表格自动解析和总结网页信息
+                </div>
+                
+                <div class="example-container">
+                    <div class="example-box">
+                        <div class="example-header">📤 请求示例</div>
+                        <div class="example-content">{
+  "url": "https://www.example.com"
+}</div>
+                    </div>
+                    <div class="example-box">
+                        <div class="example-header">📥 返回示例</div>
+                        <div class="example-content">{
+  "success": true,
+  "message": "内容获取成功",
+  "content": {
+    "标题": "示例网站",
+    "内容": "网页的主要内容..."
+  }
+}</div>
+                    </div>
+                </div>
+                
+                <div class="test-section">
+                    <div class="test-title">🧪 在线测试</div>
+                    <div class="test-form">
+                        <div class="form-group">
+                            <label class="form-label">网页链接:</label>
+                            <input class="form-input" type="url" id="link-url" placeholder="请输入要获取内容的网页链接..." value="https://www.baidu.com">
+                        </div>
+                        <button class="test-button" onclick="testLinkContentAPI()">获取内容</button>
+                        <div class="test-result" id="link-result"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="api-item">
+                <div class="api-endpoint">
+                    <span class="api-method">POST</span>
+                    /api/generate-feedback
+                </div>
+                <div class="api-description">
+                    基于执行总结数据生成进展反馈，包含执行状态反馈和改进建议两部分
+                </div>
+                
+                <div class="example-container">
+                    <div class="example-box">
+                        <div class="example-header">📤 请求示例</div>
+                        <div class="example-content">{
+  "execution_summary": {
+    "weekly_executions": 5,
+    "average_rating": 4.2,
+    "completion_rate": 85,
+    "execution_frequency": "每天执行",
+    "action_plan": "制定每日学习计划，提升专业技能",
+    "reason": "通过持续学习来提高工作竞争力"
+  }
+}</div>
+                    </div>
+                    <div class="example-box">
+                        <div class="example-header">📥 返回示例</div>
+                        <div class="example-content">{
+  "success": true,
+  "message": "进展反馈生成成功",
+  "data": {
+    "status_feedback": [
+      {
+        "emoji": "📈",
+        "title": "执行频率表现",
+        "content": "根据当前数据，你的执行频率处于良好水平..."
+      }
+    ],
+    "improvement_suggestions": [
+      {
+        "emoji": "🎯",
+        "title": "提升执行频率",
+        "content": "建议制定更规律的执行计划..."
+      }
+    ]
+  }
+}</div>
+                    </div>
+                </div>
+                
+                <div class="test-section">
+                    <div class="test-title">🧪 在线测试</div>
+                    <div class="test-form">
+                        <div class="form-group">
+                            <label class="form-label">本周执行次数:</label>
+                            <input class="form-input" type="number" id="feedback-weekly-executions" value="5" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">平均评分 (1-5):</label>
+                            <input class="form-input" type="number" id="feedback-average-rating" value="4.2" min="1" max="5" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">完成率 (%):</label>
+                            <input class="form-input" type="number" id="feedback-completion-rate" value="85" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">执行频率:</label>
+                            <select class="form-input" id="feedback-execution-frequency">
+                                <option value="每天执行">每天执行</option>
+                                <option value="每周3-4次">每周3-4次</option>
+                                <option value="每周1-2次">每周1-2次</option>
+                                <option value="偶尔执行">偶尔执行</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">行动计划:</label>
+                            <input class="form-input" type="text" id="feedback-action-plan" placeholder="请输入行动计划..." value="制定每日学习计划，提升专业技能">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">理论依据:</label>
+                            <input class="form-input" type="text" id="feedback-reason" placeholder="请输入理论依据..." value="通过持续学习来提高工作竞争力">
+                        </div>
+                        <button class="test-button" onclick="testFeedbackAPI()">发送请求</button>
+                        <div class="test-result" id="feedback-result"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="api-item">
+                <div class="api-endpoint">
+                    <span class="api-method">POST</span>
+                    /api/create-feishu-record
+                </div>
+                <div class="api-description">
+                    创建飞书表格记录，将文本内容保存到指定的行ID中
+                </div>
+                
+                <div class="example-container">
+                    <div class="example-box">
+                        <div class="example-header">📤 请求示例</div>
+                        <div class="example-content">{
+  "text": "这是要保存的文本内容",
+  "line_id": "行标识符"
+}</div>
+                    </div>
+                    <div class="example-box">
+                        <div class="example-header">📥 返回示例</div>
+                        <div class="example-content">{
+  "success": true,
+  "message": "飞书记录创建成功",
+  "data": {
+    "text": "这是要保存的文本内容",
+    "line_id": "行标识符",
+    "record_id": "rec123456"
+  }
+}</div>
+                    </div>
+                </div>
+                
+                <div class="test-section">
+                    <div class="test-title">🧪 在线测试</div>
+                    <div class="test-form">
+                        <div class="form-group">
+                            <label class="form-label">文本内容:</label>
+                            <textarea class="form-textarea" id="feishu-text" placeholder="请输入要保存的文本内容...">这是一个测试文本内容</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">行ID:</label>
+                            <input class="form-input" type="text" id="feishu-line-id" placeholder="请输入行标识符..." value="test_line_001">
+                        </div>
+                        <button class="test-button" onclick="testFeishuRecordAPI()">创建记录</button>
+                        <div class="test-result" id="feishu-result"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="api-item">
+                <div class="api-endpoint">
+                    <span class="api-method">POST</span>
+                    /api/get-table-column-stats
+                </div>
+                <div class="api-description">
+                    统计飞书表格中指定列的非空数据数量，获取列数据详情和统计信息
+                </div>
+                
+                <div class="example-container">
+                    <div class="example-box">
+                        <div class="example-header">📤 请求示例</div>
+                        <div class="example-content">{
+  "column_id": "fldXXXXXXXXXXXXXX"
+}</div>
+                    </div>
+                    <div class="example-box">
+                        <div class="example-header">📥 返回示例</div>
+                        <div class="example-content">{
+  "success": true,
+  "message": "统计完成",
+  "data": {
+    "column_id": "fldXXXXXXXXXXXXXX",
+    "count": 15,
+    "data": [
+      {
+        "record_id": "recXXXXXXXXXXXXXX",
+        "value": "数据内容1"
+      }
+    ],
+    "total_records": 20
+  }
+}</div>
+                    </div>
+                </div>
+                
+                <div class="test-section">
+                    <div class="test-title">🧪 在线测试</div>
+                    <div class="test-form">
+                        <div class="form-group">
+                            <label class="form-label">列ID:</label>
+                            <input class="form-input" type="text" id="column-stats-id" placeholder="请输入要统计的列ID..." value="fldXXXXXXXXXXXXXX">
+                        </div>
+                        <button class="test-button" onclick="testColumnStatsAPI()">统计数据</button>
+                        <div class="test-result" id="column-stats-result"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="api-item">
+                <div class="api-endpoint">
+                    <span class="api-method">GET</span>
+                    /api/get-all-table-data
+                </div>
+                <div class="api-description">
+                    获取飞书表格的完整数据，包含所有记录和字段信息
+                </div>
+                
+                <div class="example-container">
+                    <div class="example-box">
+                        <div class="example-header">📤 请求示例</div>
+                        <div class="example-content">GET /api/get-all-table-data
+
+无需请求体</div>
+                    </div>
+                    <div class="example-box">
+                        <div class="example-header">📥 返回示例</div>
+                        <div class="example-content">{
+  "success": true,
+  "message": "获取成功",
+  "data": {
+    "records": [
+      {
+        "record_id": "recXXXXXXXXXXXXXX",
+        "fields": {
+          "字段1": "值1",
+          "字段2": "值2"
+        }
+      }
+    ],
+    "total_records": 50
+  }
+}</div>
+                    </div>
+                </div>
+                
+                <div class="test-section">
+                    <div class="test-title">🧪 在线测试</div>
+                    <div class="test-form">
+                        <button class="test-button" onclick="testAllTableDataAPI()">获取所有数据</button>
+                        <div class="test-result" id="all-table-result"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h2 class="api-title">🔧 快速测试命令</h2>
+            
+            <div class="api-item">
+                <div class="api-endpoint">
+                    💡 使用 curl 命令测试 API
+                </div>
+                <div class="api-params"><strong>测试建议生成接口:</strong>
+curl -X POST http://localhost:14514/api/generate-suggestions \
+  -H "Content-Type: application/json" \
+  -d '{"input": "我想要提高工作效率"}'
+
+<strong>测试链接内容获取接口:</strong>
+curl -X POST http://localhost:14514/api/get-link-content \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://www.baidu.com"}'
+
+<strong>测试反馈建议接口:</strong>
+curl -X POST http://localhost:14514/api/generate-feedback \
+  -H "Content-Type: application/json" \
+  -d '{"execution_summary": {"weekly_executions": 5, "average_rating": 4.2, "completion_rate": 85, "execution_frequency": "每天执行", "action_plan": "制定每日学习计划，提升专业技能", "reason": "通过持续学习来提高工作竞争力"}}'
+
+<strong>测试飞书记录创建接口:</strong>
+curl -X POST http://localhost:14514/api/create-feishu-record \
+  -H "Content-Type: application/json" \
+  -d '{"text": "这是要保存的文本内容", "line_id": "test_line_001"}'
+
+<strong>测试表格列数据统计接口:</strong>
+curl -X POST http://localhost:14514/api/get-table-column-stats \
+  -H "Content-Type: application/json" \
+  -d '{"column_id": "fldXXXXXXXXXXXXXX"}'
+
+<strong>测试获取完整表格数据接口:</strong>
+curl -X GET http://localhost:14514/api/get-all-table-data
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="footer">
+            <p>🚀 服务地址: <strong>YourIP</strong></p>
+            <p>💡 所有API都支持CORS跨域请求</p>
+        </div>
+    </div>
+    
+    <script>
+        // 通用的API请求函数
+        async function makeAPIRequest(url, data, resultElementId) {
+            const resultElement = document.getElementById(resultElementId);
+            resultElement.style.display = 'block';
+            resultElement.className = 'test-result';
+            resultElement.textContent = '请求中...';
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                resultElement.className = 'test-result success';
+                resultElement.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultElement.className = 'test-result error';
+                resultElement.textContent = '请求失败: ' + error.message;
+            }
+        }
+        
+        // 测试建议生成API
+        function testSuggestionsAPI() {
+            const input = document.getElementById('suggestions-input').value;
+            const data = { input: input };
+            makeAPIRequest('/api/generate-suggestions', data, 'suggestions-result');
+        }
+        
+        // 测试链接内容获取API
+        function testLinkContentAPI() {
+            const url = document.getElementById('link-url').value;
+            if (!url) {
+                alert('请输入有效的网页链接');
+                return;
+            }
+            const data = { url: url };
+            makeAPIRequest('/api/get-link-content', data, 'link-result');
+        }
+        
+        // 测试反馈建议API
+        function testFeedbackAPI() {
+            const data = {
+                execution_summary: {
+                    weekly_executions: parseInt(document.getElementById('feedback-weekly-executions').value),
+                    average_rating: parseFloat(document.getElementById('feedback-average-rating').value),
+                    completion_rate: parseInt(document.getElementById('feedback-completion-rate').value),
+                    execution_frequency: document.getElementById('feedback-execution-frequency').value,
+                    action_plan: document.getElementById('feedback-action-plan').value,
+                    reason: document.getElementById('feedback-reason').value
+                }
+            };
+            makeAPIRequest('/api/generate-feedback', data, 'feedback-result');
+        }
+        
+        // 测试飞书记录创建API
+        function testFeishuRecordAPI() {
+            const text = document.getElementById('feishu-text').value;
+            const lineId = document.getElementById('feishu-line-id').value;
+            
+            if (!text.trim()) {
+                alert('请输入文本内容');
+                return;
+            }
+            
+            if (!lineId.trim()) {
+                alert('请输入行ID');
+                return;
+            }
+            
+            const data = {
+                text: text,
+                line_id: lineId
+            };
+            makeAPIRequest('/api/create-feishu-record', data, 'feishu-result');
+        }
+        
+        // 测试表格列数据统计API
+        function testColumnStatsAPI() {
+            const columnId = document.getElementById('column-stats-id').value;
+            
+            if (!columnId.trim()) {
+                alert('请输入列ID');
+                return;
+            }
+            
+            const data = {
+                column_id: columnId
+            };
+            makeAPIRequest('/api/get-table-column-stats', data, 'column-stats-result');
+        }
+        
+        // 测试获取完整表格数据API
+        async function testAllTableDataAPI() {
+            const resultElement = document.getElementById('all-table-result');
+            resultElement.style.display = 'block';
+            resultElement.className = 'test-result';
+            resultElement.textContent = '请求中...';
+            
+            try {
+                const response = await fetch('/api/get-all-table-data', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                resultElement.className = 'test-result success';
+                resultElement.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultElement.className = 'test-result error';
+                resultElement.textContent = '请求失败: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
