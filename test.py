@@ -2,7 +2,7 @@ from site import USER_SITE
 from openai import OpenAI
 
 
-key = "sk-9405f0121deb4460b998b39615e3076d"
+key = ""
 base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 
 class ai:

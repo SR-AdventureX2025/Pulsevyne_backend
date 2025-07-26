@@ -3,13 +3,13 @@ import time
 import json
 
 
-app_id = "cli_a80ba38980f9100e"
-app_secret = "FO2EhOTnXF8V2nCpC67Vffs5XqOUqWXN"
+app_id = ""
+app_secret = ""
 access_token = get_access_token(app_id, app_secret)
 
 
-bitable = Bitable(access_token, "KI0vbkmFZaBauOs3T3Ic4sqTnSc")
-table_id = "tblGuUJck18DcQ6v"
+bitable = Bitable(access_token, "")
+table_id = ""
 
 def get_table_record_content(table_id):
     try:

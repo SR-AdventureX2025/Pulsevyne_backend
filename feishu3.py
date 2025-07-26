@@ -1,12 +1,12 @@
 from SDKFeishu import get_access_token, Bitable
 import json
 
-app_id = "cli_a80ba38980f9100e"
-app_secret = "FO2EhOTnXF8V2nCpC67Vffs5XqOUqWXN"
+app_id = ""
+app_secret = ""
 access_token = get_access_token(app_id, app_secret)
 
-bitable = Bitable(access_token, "YArHb3TzlaLGDtsh9ZAc7lV8nde")
-table_id = "tbl66TuSMne9yEjZ"
+bitable = Bitable(access_token, "")
+table_id = ""
 
 def get_table_data_and_count_column(column_id):
     try:
